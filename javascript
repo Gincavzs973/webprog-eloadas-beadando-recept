@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JS CRUD - Kategóriák</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
+        header { background-color: #2c3e50; color: #ecf0f1; text-align: center; padding: 2rem 1rem; }
+        h1 { margin: 0; font-size: 2rem; }
+        nav { background-color: #34495e; display: flex; justify-content: center; padding: 0.8rem; }
+        nav a { color: white; text-decoration: none; padding: 10px 20px; margin: 5px; border-radius: 5px; font-weight: bold; }
+        nav a:hover, nav a.active { background-color: #e74c3c; }
+        main { padding: 2rem; max-width: 800px; margin: 0 auto; }
+        
+        .crud-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1rem; }
+        input[type="text"] { padding: 8px; width: 70%; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-add { background-color: #27ae60; }
+        .btn-edit { background-color: #f39c12; margin-right: 5px; }
+        .btn-delete { background-color: #c0392b; }
+        .btn-update { background-color: #2980b9; display: none; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h1>Web programozás-1 Előadás Házi feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="javascript.html" class="active">JavaScript CRUD</a>
+        <a href="react.html">React CRUD</a>
+        <a href="spa.html">SPA (Játékok)</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <div class="crud-container">
+            <h2>Kategóriák kezelése (JS Array CRUD)</h2>
+            
+            <div class="form-group">
+                <input type="hidden" id="edit-id">
+                <input type="text" id="kategoria-nev" placeholder="Új kategória neve (pl. Desszert)">
+                <button class="btn-add" id="btn-add" onclick="addCategory()">Hozzáadás</button>
+                <button class="btn-update" id="btn-update" onclick="updateCategory()">Mentés</button>
+            </div>
+
+            <table>
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Kategória Név</th>
+                        <th>Műveletek</th>
+                    </tr>
+                </thead>
+                <tbody id="table-body">
+                    </tbody>
+            </table>
+        </div>
+    </main>
+
+    <script>
+        // 1. ADATOK INICIALIZÁLÁSA (A kategoria.txt alapján memóriában tárolva)
+        let kategoriak = [
+            { id: 1, nev: "köret" },
+            { id: 2, nev: "leves" },
+            { id: 3, nev: "egytálétel" },
+            { id: 4, nev: "húsétel" },
+            { id: 5, nev: "főzelék" },
+            { id: 6, nev: "tészta" }
+        ];
+
+        // 2. READ: Adatok megjelenítése a táblázatban
+        function renderTable() {
+            const tbody = document.getElementById("table-body");
+            tbody.innerHTML = ""; // Táblázat ürítése
+
+            kategoriak.forEach(kat => {
+                const tr = document.createElement("tr");
+                tr.innerHTML = `
+                    <td>${kat.id}</td>
+                    <td>${kat.nev}</td>
+                    <td>
+                        <button class="btn-edit" onclick="editCategory(${kat.id})">Szerkesztés</button>
+                        <button class="btn-delete" onclick="deleteCategory(${kat.id})">Törlés</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // 3. CREATE: Új kategória hozzáadása
+        function addCategory() {
+            const inputField = document.getElementById("kategoria-nev");
+            const ujNev = inputField.value.trim();
+
+            if (ujNev === "") {
+                alert("Kérlek, add meg a kategória nevét!");
+                return;
+            }
+
+            // Új ID generálása (a legnagyobb ID + 1)
+            const maxId = kategoriak.length > 0 ? Math.max(...kategoriak.map(k => k.id)) : 0;
+            
+            const ujKategoria = {
+                id: maxId + 1,
+                nev: ujNev
+            };
+
+            kategoriak.push(ujKategoria);
+            inputField.value = ""; // Mező ürítése
+            renderTable(); // Táblázat frissítése
+        }
+
+        // 4. DELETE: Kategória törlése
+        function deleteCategory(id) {
+            if (confirm("Biztosan törölni szeretnéd ezt a kategóriát?")) {
+                kategoriak = kategoriak.filter(kat => kat.id !== id);
+                renderTable();
+            }
+        }
+
+        // 5. UPDATE - Előkészítés: Adatok betöltése az űrlapba
+        function editCategory(id) {
+            const kategoria = kategoriak.find(kat => kat.id === id);
+            if (kategoria) {
+                document.getElementById("edit-id").value = kategoria.id;
+                document.getElementById("kategoria-nev").value = kategoria.nev;
+                
+                // Gombok cseréje
+                document.getElementById("btn-add").style.display = "none";
+                document.getElementById("btn-update").style.display = "inline-block";
+            }
+        }
+
+        // 6. UPDATE - Mentés: Módosított adatok elmentése a tömbbe
+        function updateCategory() {
+            const id = parseInt(document.getElementById("edit-id").value);
+            const ujNev = document.getElementById("kategoria-nev").value.trim();
+
+            if (ujNev === "") {
+                alert("A kategória neve nem lehet üres!");
+                return;
+            }
+
+            // Kategória megkeresése és frissítése
+            const index = kategoriak.findIndex(kat => kat.id === id);
+            if (index !== -1) {
+                kategoriak[index].nev = ujNev;
+            }
+
+            // Űrlap és gombok visszaállítása
+            document.getElementById("edit-id").value = "";
+            document.getElementById("kategoria-nev").value = "";
+            document.getElementById("btn-add").style.display = "inline-block";
+            document.getElementById("btn-update").style.display = "none";
+
+            renderTable();
+        }
+
+        // Oldal betöltésekor inicializáljuk a táblázatot
+        window.onload = renderTable;
+    </script>
+</body>
+</html>
