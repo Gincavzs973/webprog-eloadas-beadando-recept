@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React & Axios CRUD - Kategóriák</title>
+    <style>
+        /* A megszokott stílusunk */
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
+        header { background-color: #2c3e50; color: #ecf0f1; text-align: center; padding: 2rem 1rem; }
+        h1 { margin: 0; font-size: 2rem; }
+        nav { background-color: #34495e; display: flex; justify-content: center; padding: 0.8rem; }
+        nav a { color: white; text-decoration: none; padding: 10px 20px; margin: 5px; border-radius: 5px; font-weight: bold; }
+        nav a:hover, nav a.active { background-color: #e74c3c; }
+        main { padding: 2rem; max-width: 800px; margin: 0 auto; }
+        
+        .crud-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 1rem; }
+        input[type="text"] { padding: 8px; width: 70%; border: 1px solid #ccc; border-radius: 4px; }
+        button { padding: 8px 15px; border: none; border-radius: 4px; cursor: pointer; color: white; font-weight: bold; }
+        .btn-add { background-color: #27ae60; }
+        .btn-edit { background-color: #f39c12; margin-right: 5px; }
+        .btn-delete { background-color: #c0392b; }
+        .btn-update { background-color: #2980b9; }
+        
+        table { width: 100%; border-collapse: collapse; margin-top: 2rem; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background-color: #2c3e50; color: white; }
+        tr:nth-child(even) { background-color: #f2f2f2; }
+        
+        .message { margin-bottom: 15px; font-weight: bold; color: #c0392b; }
+        .loading { color: #2980b9; font-weight: bold; margin-bottom: 15px; }
+    </style>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>Web programozás-1 Előadás Házi feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="javascript.html">JavaScript CRUD</a>
+        <a href="react.html">React CRUD</a>
+        <a href="spa.html">SPA (Játékok)</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html" class="active">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <div id="root"></div>
+    </main>
+
+    <script type="text/babel">
+        const { useState, useEffect } = React;
+        const API_URL = 'http://localhost:3000/kategoriak';
+
+        function AxiosCrudApp() {
+            const [categories, setCategories] = useState([]);
+            const [categoryName, setCategoryName] = useState("");
+            const [editId, setEditId] = useState(null);
+            const [loading, setLoading] = useState(false);
+            const [error, setError] = useState(null);
+
+            // 1. READ: Adatok betöltése szerverről (GET kérés Axios-szal)
+            const fetchCategories = async () => {
+                setLoading(true);
+                setError(null);
+                try {
+                    // Az Axios automatikusan JSON-t csinál a válaszból a res.data-ban
+                    const response = await axios.get(API_URL);
+                    setCategories(response.data);
+                } catch (err) {
+                    console.error("Hiba az adatok lekérésekor:", err);
+                    setError("Szerver nem elérhető. Kérlek indíts el egy json-servert (localhost:3000)!");
+                } finally {
+                    setLoading(false);
+                }
+            };
+
+            // useEffect: A komponens betöltésekor hívja meg a fetchCategories-t
+            useEffect(() => {
+                fetchCategories();
+            }, []);
+
+            // 2 & 4. CREATE és UPDATE (POST és PUT kérés Axios-szal)
+            const handleSubmit = async (e) => {
+                e.preventDefault();
+                if (categoryName.trim() === "") {
+                    alert("A kategória neve nem lehet üres!");
+                    return;
+                }
+
+                try {
+                    if (editId !== null) {
+                        // UPDATE (PUT)
+                        await axios.put(`${API_URL}/${editId}`, { nev: categoryName });
+                        setEditId(null);
+                    } else {
+                        // CREATE (POST)
+                        await axios.post(API_URL, { nev: categoryName });
+                    }
+                    setCategoryName("");
+                    fetchCategories(); // Táblázat frissítése sikeres művelet után
+                } catch (err) {
+                    console.error("Hiba a mentés során:", err);
+                    alert("Hiba történt a mentés során!");
+                }
+            };
+
+            // 3. DELETE (DELETE kérés Axios-szal)
+            const handleDelete = async (id) => {
+                if (!window.confirm("Biztosan törölni szeretnéd ezt a kategóriát?")) return;
+                
+                try {
+                    await axios.delete(`${API_URL}/${id}`);
+                    fetchCategories(); // Táblázat frissítése
+                } catch (err) {
+                    console.error("Hiba a törlés során:", err);
+                    alert("Hiba történt a törlés során!");
+                }
+            };
+
+            // Szerkesztés gomb kezelése
+            const handleEdit = (category) => {
+                setCategoryName(category.nev);
+                setEditId(category.id);
+            };
+
+            return (
+                <div className="crud-container">
+                    <h2>Kategóriák kezelése (React & Axios)</h2>
+                    <p style={{fontSize: '0.9em', color: '#7f8c8d'}}>Megjegyzés: Ez a modul REST API szerverrel kommunikál Axios segítségével.</p>
+                    
+                    {loading && <div className="loading">Adatok betöltése folyamatban...</div>}
+                    {error && <div className="message">{error}</div>}
+
+                    <form onSubmit={handleSubmit} className="form-group">
+                        <input 
+                            type="text" 
+                            placeholder="Kategória neve (pl. Desszert)" 
+                            value={categoryName}
+                            onChange={(e) => setCategoryName(e.target.value)}
+                            disabled={loading}
+                        />
+                        <button 
+                            type="submit" 
+                            className={editId !== null ? "btn-update" : "btn-add"}
+                            disabled={loading}
+                        >
+                            {editId !== null ? "Mentés" : "Hozzáadás"}
+                        </button>
+                    </form>
+
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Kategória Név</th>
+                                <th>Műveletek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {categories.map((cat) => (
+                                <tr key={cat.id}>
+                                    <td>{cat.id}</td>
+                                    <td>{cat.nev}</td>
+                                    <td>
+                                        <button className="btn-edit" onClick={() => handleEdit(cat)}>Szerkesztés</button>
+                                        <button className="btn-delete" onClick={() => handleDelete(cat.id)}>Törlés</button>
+                                    </td>
+                                </tr>
+                            ))}
+                            {!loading && categories.length === 0 && !error && (
+                                <tr>
+                                    <td colSpan="3" style={{textAlign: "center"}}>Nincs megjeleníthető kategória.</td>
+                                </tr>
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            );
+        }
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<AxiosCrudApp />);
+    </script>
+</body>
+</html>
