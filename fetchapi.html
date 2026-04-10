@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Fetch API CRUD - Kategóriák</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        ul { list-style-type: none; padding: 0; }
+        li { margin: 5px 0; padding: 10px; background: #eee; display: flex; justify-content: space-between; width: 300px;}
+        button { margin-left: 5px; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h2>Kategóriák Kezelése (Fetch API)</h2>
+    <input type="text" id="kategoriaNev" placeholder="Új kategória neve">
+    <button onclick="addKategoria()">Hozzáadás</button>
+    <ul id="lista"></ul>
+
+    <script>
+        const API_URL = 'api.php';
+
+        async function loadData() {
+            const res = await fetch(API_URL);
+            const data = await res.json();
+            const lista = document.getElementById('lista');
+            lista.innerHTML = '';
+            data.forEach(item => {
+                lista.innerHTML += `
+                    <li>
+                        <span id="text-${item.id}">${item.nev}</span>
+                        <div>
+                            <button onclick="editKategoria(${item.id})">Szerkeszt</button>
+                            <button onclick="deleteKategoria(${item.id})">Töröl</button>
+                        </div>
+                    </li>
+                `;
+            });
+        }
+
+        async function addKategoria() {
+            const nev = document.getElementById('kategoriaNev').value;
+            if (!nev) return alert('Add meg a nevet!');
+            await fetch(API_URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ nev: nev })
+            });
+            document.getElementById('kategoriaNev').value = '';
+            loadData();
+        }
+
+        async function editKategoria(id) {
+            const currentName = document.getElementById(`text-${id}`).innerText;
+            const newName = prompt("Új név:", currentName);
+            if (newName && newName !== currentName) {
+                await fetch(API_URL, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ id: id, nev: newName })
+                });
+                loadData();
+            }
+        }
+
+        async function deleteKategoria(id) {
+            if (confirm("Biztosan törlöd?")) {
+                await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+                loadData();
+            }
+        }
+
+        window.onload = loadData;
+    </script>
+</body>
+</html>

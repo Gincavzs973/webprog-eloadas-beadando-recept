@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>OOJS - Grafikus Alkalmazás</title>
+    <style>
+        /* Alapvető vizuális beállítások, hogy teljes képernyős legyen a vászon */
+        body { margin: 0; overflow: hidden; background-color: #f4f4f9; font-family: Arial; height: 100vh; width: 100vw; }
+        .alakzat { position: absolute; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
+        #utmutato { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ccc; }
+    </style>
+</head>
+<body>
+    <div id="utmutato">
+        <h2>OOJS Grafikus Alkalmazás</h2>
+        <p>Kattints bárhova a képernyőn egy új alakzat (Kör) létrehozásához!</p>
+        <p>Kattints a már létrehozott körökre az animációhoz!</p>
+    </div>
+
+    <script>
+        // 1. ALAPOSZTÁLY (class, constructor, metódus)
+        class Alakzat {
+            constructor(x, y, meret, szin) {
+                this.x = x;
+                this.y = y;
+                this.meret = meret;
+                this.szin = szin;
+                this.elem = document.createElement('div');
+            }
+            
+            // Közös megjelenítő metódus
+            megjelenit() {
+                this.elem.className = 'alakzat';
+                this.elem.style.left = this.x + 'px';
+                this.elem.style.top = this.y + 'px';
+                this.elem.style.width = this.meret + 'px';
+                this.elem.style.height = this.meret + 'px';
+                this.elem.style.backgroundColor = this.szin;
+                
+                // KÖTELEZŐ ELEM: Hozzáadás a DOM-hoz
+                document.body.appendChild(this.elem);
+            }
+        }
+
+        // 2. SZÁRMAZTATOTT OSZTÁLY (extends, super)
+        class Kor extends Alakzat {
+            constructor(x, y, meret, szin) {
+                // KÖTELEZŐ ELEM: Ősosztály konstruktorának hívása
+                super(x, y, meret, szin); 
+                this.elem.style.borderRadius = '50%'; // A négyzetből kör lesz a CSS segítségével
+            }
+
+            // Saját metódus: Interakció hozzáadása
+            interakcio() {
+                this.elem.addEventListener('click', (e) => {
+                    e.stopPropagation(); // Prevenció: Ne rajzoljon új kört a meglévő alá
+                    this.elem.style.transform = 'scale(1.5)';
+                    this.elem.style.transition = 'transform 0.2s';
+                    setTimeout(() => this.elem.style.transform = 'scale(1)', 200);
+                });
+            }
+        }
+
+        // 3. PÉLDÁNYOSÍTÁS (Kattintás eseménykezelő a teljes ablakon)
+        window.addEventListener('click', (e) => {
+            // Ne rajzoljunk, ha az útmutató dobozra kattintunk
+            if (e.target.closest('#utmutato')) return;
+
+            // Véletlenszerű szín generálása (Hexa kód)
+            const randomSzin = '#' + Math.floor(Math.random()*16777215).toString(16);
+            
+            // Objektum létrehozása az egér koordinátáin (középre igazítva a 50px mérethez)
+            const ujKor = new Kor(e.clientX - 25, e.clientY - 25, 50, randomSzin);
+            
+            // Metódusok meghívása
+            ujKor.megjelenit();
+            ujKor.interakcio();
+        });
+    </script>
+</body>
+</html>
