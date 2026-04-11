@@ -2,23 +2,48 @@
 <html lang="hu">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>OOJS - Grafikus Alkalmazás</title>
     <style>
-        /* Alapvető vizuális beállítások, hogy teljes képernyős legyen a vászon */
-        body { margin: 0; overflow: hidden; background-color: #f4f4f9; font-family: Arial; height: 100vh; width: 100vw; }
-        .alakzat { position: absolute; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); }
-        #utmutato { position: absolute; top: 20px; left: 20px; z-index: 10; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ccc; }
+        /* Főoldalról áthozott stílusok */
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; margin: 0; padding: 0; background-color: #f4f7f6; color: #333; display: flex; flex-direction: column; min-height: 100vh; overflow-x: hidden; }
+        header { background-color: #2c3e50; color: #ecf0f1; text-align: center; padding: 2rem 1rem; box-shadow: 0 4px 6px rgba(0,0,0,0.1); position: relative; z-index: 100; }
+        h1 { margin: 0; font-size: 2.2rem; }
+        nav { background-color: #34495e; display: flex; justify-content: center; flex-wrap: wrap; padding: 0.8rem; position: relative; z-index: 100; }
+        nav a { color: white; text-decoration: none; padding: 10px 20px; margin: 5px; border-radius: 5px; transition: background-color 0.3s ease; font-weight: bold; }
+        nav a:hover, nav a.active { background-color: #e74c3c; }
+        
+        /* OOJS specifikus stílusok */
+        main { flex: 1; position: relative; overflow: hidden; } /* Ide rajzolunk */
+        .alakzat { position: absolute; cursor: pointer; box-shadow: 2px 2px 5px rgba(0,0,0,0.3); z-index: 10; }
+        #utmutato { position: absolute; top: 20px; left: 20px; z-index: 20; background: white; padding: 15px; border-radius: 8px; border: 1px solid #ccc; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
     </style>
 </head>
 <body>
-    <div id="utmutato">
-        <h2>OOJS Grafikus Alkalmazás</h2>
-        <p>Kattints bárhova a képernyőn egy új alakzat (Kör) létrehozásához!</p>
-        <p>Kattints a már létrehozott körökre az animációhoz!</p>
-    </div>
+
+    <header>
+        <h1>Web programozás-1 Előadás Házi feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="javascript.html">JavaScript CRUD</a>
+        <a href="react.html">React CRUD</a>
+        <a href="spa.html">SPA (Játékok)</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html" class="active">OOJS</a>
+    </nav>
+
+    <main id="rajzvaszon">
+        <div id="utmutato">
+            <h2>OOJS Grafikus Alkalmazás</h2>
+            <p>Kattints bárhova a szürke területen egy új alakzat (Kör) létrehozásához!</p>
+            <p>Kattints a már létrehozott körökre az animációhoz!</p>
+        </div>
+    </main>
 
     <script>
-        // 1. ALAPOSZTÁLY (class, constructor, metódus)
         class Alakzat {
             constructor(x, y, meret, szin) {
                 this.x = x;
@@ -28,7 +53,6 @@
                 this.elem = document.createElement('div');
             }
             
-            // Közös megjelenítő metódus
             megjelenit() {
                 this.elem.className = 'alakzat';
                 this.elem.style.left = this.x + 'px';
@@ -37,23 +61,20 @@
                 this.elem.style.height = this.meret + 'px';
                 this.elem.style.backgroundColor = this.szin;
                 
-                // KÖTELEZŐ ELEM: Hozzáadás a DOM-hoz
-                document.body.appendChild(this.elem);
+                // KÖTELEZŐ ELEM: Hozzáadás a DOM-hoz (de most a main-hez, hogy ne lógjon a menüre)
+                document.getElementById('rajzvaszon').appendChild(this.elem);
             }
         }
 
-        // 2. SZÁRMAZTATOTT OSZTÁLY (extends, super)
         class Kor extends Alakzat {
             constructor(x, y, meret, szin) {
-                // KÖTELEZŐ ELEM: Ősosztály konstruktorának hívása
                 super(x, y, meret, szin); 
-                this.elem.style.borderRadius = '50%'; // A négyzetből kör lesz a CSS segítségével
+                this.elem.style.borderRadius = '50%';
             }
 
-            // Saját metódus: Interakció hozzáadása
             interakcio() {
                 this.elem.addEventListener('click', (e) => {
-                    e.stopPropagation(); // Prevenció: Ne rajzoljon új kört a meglévő alá
+                    e.stopPropagation(); 
                     this.elem.style.transform = 'scale(1.5)';
                     this.elem.style.transition = 'transform 0.2s';
                     setTimeout(() => this.elem.style.transform = 'scale(1)', 200);
@@ -61,18 +82,20 @@
             }
         }
 
-        // 3. PÉLDÁNYOSÍTÁS (Kattintás eseménykezelő a teljes ablakon)
-        window.addEventListener('click', (e) => {
+        // Kattintás eseménykezelő a rajzvásznon
+        document.getElementById('rajzvaszon').addEventListener('click', (e) => {
             // Ne rajzoljunk, ha az útmutató dobozra kattintunk
             if (e.target.closest('#utmutato')) return;
 
-            // Véletlenszerű szín generálása (Hexa kód)
+            const rajzvaszonRect = document.getElementById('rajzvaszon').getBoundingClientRect();
+            
+            // Relatív koordináták számítása a main-hez képest
+            const x = e.clientX - rajzvaszonRect.left - 25;
+            const y = e.clientY - rajzvaszonRect.top - 25;
+
             const randomSzin = '#' + Math.floor(Math.random()*16777215).toString(16);
+            const ujKor = new Kor(x, y, 50, randomSzin);
             
-            // Objektum létrehozása az egér koordinátáin (középre igazítva a 50px mérethez)
-            const ujKor = new Kor(e.clientX - 25, e.clientY - 25, 50, randomSzin);
-            
-            // Metódusok meghívása
             ujKor.megjelenit();
             ujKor.interakcio();
         });

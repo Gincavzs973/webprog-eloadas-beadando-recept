@@ -1,4 +1,6 @@
 <?php
+// Cache kiiktatása, hogy a böngésző mindig a legfrissebb SQL adatokat kérje le
+header("Cache-Control: no-cache, no-store, must-revalidate");
 header("Content-Type: application/json; charset=UTF-8");
 header("Access-Control-Allow-Methods: GET, POST, PUT, DELETE");
 header("Access-Control-Allow-Headers: Content-Type");
