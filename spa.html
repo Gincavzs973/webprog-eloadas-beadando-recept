@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SPA - Játékok</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
+        header { background-color: #2c3e50; color: #ecf0f1; text-align: center; padding: 2rem 1rem; }
+        h1 { margin: 0; font-size: 2rem; }
+        nav { background-color: #34495e; display: flex; justify-content: center; padding: 0.8rem; }
+        nav a { color: white; text-decoration: none; padding: 10px 20px; margin: 5px; border-radius: 5px; font-weight: bold; }
+        nav a:hover, nav a.active { background-color: #e74c3c; }
+        main { padding: 2rem; max-width: 800px; margin: 0 auto; text-align: center; }
+        
+        /* Belső SPA Navigáció */
+        .spa-nav { margin-bottom: 2rem; }
+        .spa-nav button { padding: 10px 20px; font-size: 1.1rem; cursor: pointer; border: 2px solid #2980b9; background-color: white; color: #2980b9; border-radius: 5px; margin: 0 10px; font-weight: bold; transition: all 0.3s; }
+        .spa-nav button.active { background-color: #2980b9; color: white; }
+
+        .app-container { background: white; padding: 2rem; border-radius: 8px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        
+        /* Amőba Stílusok */
+        .board { display: grid; grid-template-columns: repeat(3, 100px); gap: 5px; justify-content: center; margin-top: 20px; }
+        .square { width: 100px; height: 100px; background: #ecf0f1; border: 2px solid #bdc3c7; font-size: 3rem; font-weight: bold; cursor: pointer; color: #2c3e50; }
+        .square:hover { background: #e0e6ed; }
+        
+        /* Számkitaláló Stílusok */
+        .guess-input { padding: 10px; font-size: 1.2rem; width: 100px; text-align: center; margin-right: 10px; border: 1px solid #ccc; border-radius: 5px; }
+        .guess-btn { padding: 10px 20px; font-size: 1.2rem; background-color: #27ae60; color: white; border: none; border-radius: 5px; cursor: pointer; }
+        .reset-btn { margin-top: 20px; padding: 10px 20px; background-color: #e74c3c; color: white; border: none; border-radius: 5px; cursor: pointer; }
+    </style>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/babel-standalone@6/babel.min.js"></script>
+</head>
+<body>
+
+    <header>
+        <h1>Web programozás-1 Előadás Házi feladat</h1>
+    </header>
+
+    <nav>
+        <a href="index.html">Főoldal</a>
+        <a href="javascript.html">JavaScript CRUD</a>
+        <a href="react.html">React CRUD</a>
+        <a href="spa.html" class="active">SPA (Játékok)</a>
+        <a href="fetchapi.html">Fetch API</a>
+        <a href="axios.html">Axios</a>
+        <a href="oojs.html">OOJS</a>
+    </nav>
+
+    <main>
+        <div id="root"></div>
+    </main>
+
+    <script type="text/babel">
+        const { useState } = React;
+
+        // --- 1. KOMPONENS: Amőba (Tic-Tac-Toe) ---
+        // Forrás: A hivatalos React dokumentáció tutorialja alapján adaptálva.
+        function TicTacToe() {
+            const [board, setBoard] = useState(Array(9).fill(null));
+            const [xIsNext, setXIsNext] = useState(true);
+
+            const calculateWinner = (squares) => {
+                const lines = [
+                    [0, 1, 2], [3, 4, 5], [6, 7, 8], // Sorok
+                    [0, 3, 6], [1, 4, 7], [2, 5, 8], // Oszlopok
+                    [0, 4, 8], [2, 4, 6]             // Átlók
+                ];
+                for (let i = 0; i < lines.length; i++) {
+                    const [a, b, c] = lines[i];
+                    if (squares[a] && squares[a] === squares[b] && squares[a] === squares[c]) {
+                        return squares[a];
+                    }
+                }
+                return null;
+            };
+
+            const winner = calculateWinner(board);
+            const isDraw = !winner && board.every(square => square !== null);
+
+            const handleClick = (index) => {
+                if (board[index] || winner) return;
+                const newBoard = [...board];
+                newBoard[index] = xIsNext ? "X" : "O";
+                setBoard(newBoard);
+                setXIsNext(!xIsNext);
+            };
+
+            const resetGame = () => {
+                setBoard(Array(9).fill(null));
+                setXIsNext(true);
+            };
+
+            return (
+                <div>
+                    <h2>Amőba (Tic-Tac-Toe)</h2>
+                    <h3>
+                        {winner ? `Nyertes: ${winner}` : isDraw ? "Döntetlen!" : `Következik: ${xIsNext ? "X" : "O"}`}
+                    </h3>
+                    <div className="board">
+                        {board.map((square, i) => (
+                            <button key={i} className="square" onClick={() => handleClick(i)}>
+                                {square}
+                            </button>
+                        ))}
+                    </div>
+                    <button className="reset-btn" onClick={resetGame}>Új játék</button>
+                </div>
+            );
+        }
+
+        // --- 2. KOMPONENS: Számkitaláló ---
+        // Forrás: Saját fejlesztésű, klasszikus logikai játék.
+        function NumberGuesser() {
+            const [targetNumber, setTargetNumber] = useState(Math.floor(Math.random() * 100) + 1);
+            const [guess, setGuess] = useState("");
+            const [message, setMessage] = useState("Gondoltam egy számra 1 és 100 között.");
+            const [attempts, setAttempts] = useState(0);
+            const [isWon, setIsWon] = useState(false);
+
+            const handleGuess = (e) => {
+                e.preventDefault();
+                if (isWon || guess === "") return;
+
+                const userGuess = parseInt(guess, 10);
+                setAttempts(attempts + 1);
+
+                if (userGuess === targetNumber) {
+                    setMessage(`Gratulálok! Eltaláltad ${attempts + 1} próbálkozásból!`);
+                    setIsWon(true);
+                } else if (userGuess < targetNumber) {
+                    setMessage("Nagyobb számra gondoltam.");
+                } else {
+                    setMessage("Kisebb számra gondoltam.");
+                }
+                setGuess("");
+            };
+
+            const resetGame = () => {
+                setTargetNumber(Math.floor(Math.random() * 100) + 1);
+                setGuess("");
+                setMessage("Gondoltam egy számra 1 és 100 között.");
+                setAttempts(0);
+                setIsWon(false);
+            };
+
+            return (
+                <div>
+                    <h2>Számkitaláló</h2>
+                    <p style={{ fontSize: '1.2rem', fontWeight: 'bold' }}>{message}</p>
+                    <p>Próbálkozások száma: {attempts}</p>
+                    
+                    <form onSubmit={handleGuess}>
+                        <input 
+                            type="number" 
+                            className="guess-input"
+                            value={guess} 
+                            onChange={(e) => setGuess(e.target.value)} 
+                            disabled={isWon}
+                            min="1" max="100"
+                        />
+                        <button type="submit" className="guess-btn" disabled={isWon}>Tippelek</button>
+                    </form>
+                    
+                    {isWon && <button className="reset-btn" onClick={resetGame}>Új játék</button>}
+                </div>
+            );
+        }
+
+        // --- FŐ KOMPONENS: SPA Kezelő ---
+        function App() {
+            // Állapotváltozó a menüpontok közötti váltáshoz
+            const [activeApp, setActiveApp] = useState("tictactoe");
+
+            return (
+                <div className="app-container">
+                    <div className="spa-nav">
+                        <button 
+                            className={activeApp === "tictactoe" ? "active" : ""} 
+                            onClick={() => setActiveApp("tictactoe")}
+                        >
+                            Amőba
+                        </button>
+                        <button 
+                            className={activeApp === "guesser" ? "active" : ""} 
+                            onClick={() => setActiveApp("guesser")}
+                        >
+                            Számkitaláló
+                        </button>
+                    </div>
+
+                    <hr style={{marginBottom: '2rem', border: '1px solid #ecf0f1'}} />
+
+                    {/* Feltételes renderelés: csak a kiválasztott alkalmazás jelenik meg */}
+                    {activeApp === "tictactoe" && <TicTacToe />}
+                    {activeApp === "guesser" && <NumberGuesser />}
+                </div>
+            );
+        }
+
+        const rootElement = document.getElementById('root');
+        const root = ReactDOM.createRoot(rootElement);
+        root.render(<App />);
+    </script>
+</body>
+</html>

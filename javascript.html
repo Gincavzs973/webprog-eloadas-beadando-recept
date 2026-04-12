@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="hu">
-<head>
+<head>.
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>JS CRUD - Ételek</title>
+    <title>JS CRUD - Kategóriák</title>
     <style>
         body { font-family: 'Segoe UI', Tahoma, sans-serif; margin: 0; background-color: #f4f7f6; color: #333; }
         header { background-color: #2c3e50; color: #ecf0f1; text-align: center; padding: 2rem 1rem; }
@@ -46,11 +46,11 @@
 
     <main>
         <div class="crud-container">
-            <h2>Ételek kezelése (JS Array CRUD)</h2>
+            <h2>Kategóriák kezelése (JS Array CRUD)</h2>
             
             <div class="form-group">
                 <input type="hidden" id="edit-id">
-                <input type="text" id="kategoria-nev" placeholder="Új étel neve (pl. Pörkölt)">
+                <input type="text" id="kategoria-nev" placeholder="Új kategória neve (pl. Desszert)">
                 <button class="btn-add" id="btn-add" onclick="addCategory()">Hozzáadás</button>
                 <button class="btn-update" id="btn-update" onclick="updateCategory()">Mentés</button>
             </div>
@@ -59,7 +59,7 @@
                 <thead>
                     <tr>
                         <th>ID</th>
-                        <th>Étel Név</th>
+                        <th>Kategória Név</th>
                         <th>Műveletek</th>
                     </tr>
                 </thead>
@@ -70,13 +70,14 @@
     </main>
 
     <script>
-        // 1. ADATOK INICIALIZÁLÁSA (Az etel.txt alapján memóriában tárolva)
+        // 1. ADATOK INICIALIZÁLÁSA (A kategoria.txt alapján memóriában tárolva)
         let kategoriak = [
-            { id: 1, nev: "karfiolleves" },
-            { id: 2, nev: "töltött paprika" },
-            { id: 3, nev: "mákos guba" },
-            { id: 4, nev: "brokkolileves" },
-            { id: 5, nev: "Újházi tyúkhúsleves" }
+            { id: 1, nev: "köret" },
+            { id: 2, nev: "leves" },
+            { id: 3, nev: "egytálétel" },
+            { id: 4, nev: "húsétel" },
+            { id: 5, nev: "főzelék" },
+            { id: 6, nev: "tészta" }
         ];
 
         // 2. READ: Adatok megjelenítése a táblázatban
@@ -104,7 +105,7 @@
             const ujNev = inputField.value.trim();
 
             if (ujNev === "") {
-                alert("Kérlek, add meg az étel nevét!");
+                alert("Kérlek, add meg a kategória nevét!");
                 return;
             }
 
@@ -123,7 +124,7 @@
 
         // 4. DELETE: Kategória törlése
         function deleteCategory(id) {
-            if (confirm("Biztosan törölni szeretnéd ezt az ételt?")) {
+            if (confirm("Biztosan törölni szeretnéd ezt a kategóriát?")) {
                 kategoriak = kategoriak.filter(kat => kat.id !== id);
                 renderTable();
             }
@@ -148,7 +149,7 @@
             const ujNev = document.getElementById("kategoria-nev").value.trim();
 
             if (ujNev === "") {
-                alert("Az étel neve nem lehet üres!");
+                alert("A kategória neve nem lehet üres!");
                 return;
             }
 
